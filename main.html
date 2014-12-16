@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <style>
+        .egg {
+	        background: transparent url(smallsheet.png) 0 0 no-repeat;
+	        position: absolute;
+	        top: 150px;
+	        left: 65px;
+	        width: 300px;
+	        height: 169px;
+	        z-index: 2000;
+	        cursor: pointer;
+        }
+
+        /*#logo {
+            background-image: url(vr_logo.jpg);
+            position: absolute;
+	        top: 0px;
+	        left: 0px;
+	        width: 1363px;
+	        height: 566px;
+        }*/
+
+        #canvas {
+            position: absolute;
+            background-color: aliceblue;
+	        top: 0px;
+	        left: 0px;
+	        /*width: 1200px;
+	        height: 600px;*/
+            border:1px solid #000000;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="1200" height="600"></canvas>
+    <!--<div id="logo">
+    </div>-->
+    <div id="sprites">
+        
+    </div>
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.spritely/0.6.8/jquery.spritely.min.js"></script>
+    <!--<script src="jquery.animateSprite.min"></script>-->
+
+    <script>
+        $(document).ready(function () {
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+            var logo = new Image();
+            logo.src = "vr_logo.jpg";
+            logo.onload = function () {
+                context.drawImage(logo, 0, 0, 1363, 566, 0, 0, 1200, 600);
+            };
+
+            var imageObj1 = new Image();
+            imageObj1.src = "munaShrink024.png";
+
+            $(document).on('click', '#canvas', function (e) {
+                var sprite = $('<div/>', {
+                    class: 'egg',
+                    id: Math.random()
+                });
+                $('#sprites').append(sprite);
+                var pos = getMousePos(canvas, e);
+                sprite.css({ top: pos.y - 84.5, left: pos.x - 150 });
+
+                sprite.sprite({
+                    fps: 24,
+                    no_of_frames: 24,
+                    start_at_frame: 0,
+                    on_last_frame: function (obj) {
+                        obj.spStop(true);
+                        var pos = sprite.position();
+                        var x = pos.left;
+                        var y = pos.top;
+                        context.drawImage(imageObj1, 0, 0, 300, 169, x, y, 300, 169);
+                        obj.destroy();
+                        sprite.remove();
+                    }
+                });
+                
+                //$('#egg').spStart();
+            });
+        });
+
+        function getMousePos(canvas, evt) {
+            var rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+    </script>
+</body>
+</html>
