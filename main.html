@@ -4,6 +4,8 @@
 <head>
     <meta charset="utf-8" />
     <title></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
     <style>
         .egg {
             background: transparent url(smallsheet.png) 0 0 no-repeat;
@@ -23,8 +25,29 @@
 
         .splashposition {
             position: absolute;
-            top: 50px;
+            top: 70px;
             left: 10px;
+        }
+
+        .btn-file {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-file input[type=file] {
+            position: absolute;
+            top: 0;
+            right: 0;
+            min-width: 100%;
+            min-height: 100%;
+            font-size: 100px;
+            text-align: right;
+            filter: alpha(opacity=0);
+            opacity: 0;
+            outline: none;
+            background: white;
+            cursor: inherit;
+            display: block;
         }
     </style>
 </head>
@@ -34,9 +57,18 @@
 
     </div>
     <!--<textarea id="clickpos" rows="1" cols="75">mouse x</textarea>-->
-    <input type="file" id="file-input">
-
+    <div class="container-fluid">
+        <div class="row-fluid">
+            <h2>
+                Drag & Drop image or
+                <span class="btn btn-primary btn-file">
+                    Browse <input id="file-input" type="file">
+                </span>
+            </h2>
+        </div>
+    </div>
     <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.spritely/0.6.8/jquery.spritely.min.js"></script>
     <script src="https://raw.github.com/betamax/getImageData/master/jquery.getimagedata.min.js"></script>
 
@@ -63,8 +95,12 @@
             var logo = new Image();
 
             $('#file-input').change(function (e) {
-                var file = e.target.files[0],
-                    imageType = /image.*/;
+                var file = e.target.files[0];
+                readFile(file);
+            });
+
+            function readFile(file) {
+                var imageType = /image.*/;
 
                 if (!file.type.match(imageType))
                     return;
@@ -72,7 +108,7 @@
                 var reader = new FileReader();
                 reader.onload = fileOnload;
                 reader.readAsDataURL(file);
-            });
+            }
 
             function fileOnload(e) {
                 var jotain = this;
@@ -86,11 +122,16 @@
                 e.preventDefault();
             });
             $('#canvas').bind('drop', function (e) {
-                var img = $('img', e.originalEvent.dataTransfer.getData('text/html'));
-                var url = img.attr('src');
-                logo = new Image();
-                logo.onload = logo_onload;
-                logo.src = url;
+                var img = $('img', e.originalEvent.dataTransfer.getData('text/html')).attr('src');
+                if (img != undefined) {
+                    logo = new Image();
+                    logo.onload = logo_onload;
+                    logo.src = img;
+                }
+                else {
+                    var imgfile = e.originalEvent.dataTransfer.files[0];
+                    readFile(imgfile);
+                }
             });
 
             function logo_onload() {
