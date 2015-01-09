@@ -6,68 +6,134 @@
     <title></title>
     <style>
         .egg {
-	        background: transparent url(smallsheet.png) 0 0 no-repeat;
-	        position: absolute;
-	        top: 150px;
-	        left: 65px;
-	        width: 300px;
-	        height: 169px;
-	        z-index: 2000;
-	        cursor: pointer;
+            background: transparent url(smallsheet.png) 0 0 no-repeat;
+            position: absolute;
+            top: 150px;
+            left: 65px;
+            width: 300px;
+            height: 169px;
+            z-index: 2000;
+            cursor: pointer;
         }
 
         /*#logo {
             background-image: url(vr_logo.jpg);
             position: absolute;
-	        top: 0px;
-	        left: 0px;
-	        width: 1363px;
-	        height: 566px;
+            top: 0px;
+            left: 0px;
+            width: 1363px;
+            height: 566px;
         }*/
 
         #canvas {
-            position: absolute;
             background-color: aliceblue;
-	        top: 0px;
-	        left: 0px;
-	        /*width: 1200px;
-	        height: 600px;*/
-            border:1px solid #000000;
+            border: 1px solid #000000;
+        }
+
+        .splashposition {
+            position: absolute;
+            top: 50px;
+            left: 10px;
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas" width="1200" height="600"></canvas>
-    <!--<div id="logo">
-    </div>-->
-    <div id="sprites">
-        
+    <!--<canvas id="canvas" width="1300" height="600"></canvas>-->
+    <div id="sprites" class="splashposition">
+
     </div>
+    <textarea id="clickpos" rows="1" cols="75">mouse x</textarea>
+    <input type="file" id="file-input">
+
     <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.spritely/0.6.8/jquery.spritely.min.js"></script>
-    <!--<script src="jquery.animateSprite.min"></script>-->
 
     <script>
         $(document).ready(function () {
+            var canvas_width = $(window).width() - 20;
+            var canvas_height = $(window).height() - 100;
+            var canvas_ratio = canvas_width / canvas_height;
+            var canvas = $('<canvas/>', {
+                id: 'canvas',
+                height: canvas_height,
+                width: canvas_width,
+                class: 'splashposition'
+            });
+            var canvas_resolution_width = "1500";
+            var canvas_resolution_height = canvas_resolution_width / canvas_ratio;
+            canvas.attr("width", canvas_resolution_width);
+            canvas.attr("height", canvas_resolution_height);
+            $(document.body).append(canvas);
+
             var canvas = document.getElementById('canvas');
             var context = canvas.getContext('2d');
+
             var logo = new Image();
-            logo.src = "vr_logo.jpg";
-            logo.onload = function () {
-                context.drawImage(logo, 0, 0, 1363, 566, 0, 0, 1200, 600);
-            };
+            //logo.src = "vr_logo.jpg";
+            //logo.onload = logo_onload;
+
+            $('#file-input').change(function (e) {
+                var file = e.target.files[0],
+                    imageType = /image.*/;
+
+                if (!file.type.match(imageType))
+                    return;
+
+                var reader = new FileReader();
+                reader.onload = fileOnload;
+                reader.readAsDataURL(file);
+            });
+
+            function fileOnload(e) {
+                var jotain = this;
+                logo = new Image();
+                logo.onload = logo_onload;
+                logo.src = e.target.result;
+            }
+
+            function logo_onload() {
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                var logo_width = this.width;
+                var logo_height = this.height;
+                var drawing_width = 0;
+                var drawing_heigth = 0;
+                var left = 0;
+                var top = 0;
+                var logo_ratio = logo_width / logo_height;
+                if (logo_ratio > canvas_ratio) {
+                    drawing_width = logo_width > canvas_resolution_width ? canvas_resolution_width : logo_width;
+                    drawing_heigth = drawing_width / logo_ratio;
+                } else {
+                    drawing_heigth = logo_height > canvas_resolution_height ? canvas_resolution_height : logo_height;
+                    drawing_width = drawing_heigth * logo_ratio;
+                }
+                left = (canvas_resolution_width - drawing_width) / 2;
+                top = (canvas_resolution_height - drawing_heigth) / 2;
+
+                context.drawImage(logo, 0, 0, logo_width, logo_height, left, top, drawing_width, drawing_heigth);
+            }
+
 
             var imageObj1 = new Image();
             imageObj1.src = "munaShrink024.png";
+            var sprite_center_x = 140;
+            var sprite_center_y = 50;
 
             $(document).on('click', '#canvas', function (e) {
                 var sprite = $('<div/>', {
                     class: 'egg',
                     id: Math.random()
                 });
+
                 $('#sprites').append(sprite);
                 var pos = getMousePos(canvas, e);
-                sprite.css({ top: pos.y - 84.5, left: pos.x - 150 });
+                var x_on_canvas_res = (pos.x / canvas_width) * canvas_resolution_width - sprite_center_x;
+                var y_on_canvas_res = (pos.y / canvas_height) * canvas_resolution_height - sprite_center_y;
+
+                $('#clickpos').val('mouse x: ' + pos.x + ' mouse y: ' + pos.y +
+                    ' \ncanvas x: ' + x_on_canvas_res + ' canvas y: ' + y_on_canvas_res);
+
+                sprite.css({ top: pos.y - sprite_center_y, left: pos.x - sprite_center_x });
 
                 sprite.sprite({
                     fps: 24,
@@ -75,15 +141,12 @@
                     start_at_frame: 0,
                     on_last_frame: function (obj) {
                         obj.spStop(true);
-                        var pos = sprite.position();
-                        var x = pos.left;
-                        var y = pos.top;
-                        context.drawImage(imageObj1, 0, 0, 300, 169, x, y, 300, 169);
+                        context.drawImage(imageObj1, x_on_canvas_res, y_on_canvas_res);
                         obj.destroy();
                         sprite.remove();
                     }
                 });
-                
+
                 //$('#egg').spStart();
             });
         });
