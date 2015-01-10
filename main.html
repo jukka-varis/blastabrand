@@ -70,7 +70,29 @@
     <script src="https://raw.github.com/betamax/getImageData/master/jquery.getimagedata.min.js"></script>
 
     <script>
+
         $(document).ready(function () {
+
+            //$(window).resize(function () {
+            //    var c = document.getElementById("canvas");
+            //    var ctx = c.getContext("2d");
+            //    var data = canvas.toDataURL();
+
+            //    canvas_width = $(window).width() - 20;
+            //    canvas_height = $(window).height() - 100;
+            //    canvas_ratio = canvas_width / canvas_height;
+            //    canvas_resolution_width = "1500";
+            //    canvas_resolution_height = canvas_resolution_width / canvas_ratio;
+            //    $('#canvas').width(canvas_width);
+            //    $('#canvas').height(canvas_height);
+            //    $('#canvas').attr("width", canvas_resolution_width);
+            //    $('#canvas').attr("height", canvas_resolution_height);
+
+            //    var img = new Image();
+            //    img.onload = logo_onload;
+            //    img.src = data;
+            //});
+
             var canvas_width = $(window).width() - 20;
             var canvas_height = $(window).height() - 100;
             var canvas_ratio = canvas_width / canvas_height;
@@ -118,13 +140,14 @@
                 e.preventDefault();
             });
             $('#canvas').bind('drop', function (e) {
-                var img = $('img', e.originalEvent.dataTransfer.getData('text/html')).attr('src');
+                var hasHtml = $.inArray('text/html', e.originalEvent.dataTransfer.types) > -1;
+                var img = hasHtml ? $('img', e.originalEvent.dataTransfer.getData('text/html')).attr('src') : undefined;
                 if (img != undefined) {
                     logo = new Image();
                     logo.onload = logo_onload;
                     logo.src = img;
                 }
-                else {
+                else if(e.originalEvent.dataTransfer.files.length > 0) {
                     var imgfile = e.originalEvent.dataTransfer.files[0];
                     readFile(imgfile);
                 }
@@ -182,8 +205,11 @@
                     on_last_frame: function (obj) {
                         obj.spStop(true);
                         context.drawImage(imageObj1, x_on_canvas_res, y_on_canvas_res);
-                        obj.destroy();
-                        sprite.remove();
+                        setTimeout(function () {
+                            obj.destroy();
+                            sprite.remove();
+                        }, 100);
+                        
                     }
                 });
             }
